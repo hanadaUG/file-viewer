@@ -63,13 +63,14 @@ func handler(c echo.Context) error {
 // 拡張子からファイル種類を判別
 func getFileType(path string) FileType {
 	ext := filepath.Ext(path) // "path/to/hoge.c" => ".c"
+	ext = strings.ToLower(ext)
 	fmt.Printf("ext: %s\n", ext)
 
 	switch ext {
 	case "":
 		return Dir
 	case ".jpeg":
-		return Jpeg
+		fallthrough
 	case ".jpg":
 		return Jpeg
 	case ".png":
