@@ -30,9 +30,11 @@ func newEntity(path string) *Entity {
 	return &Entity{Path: path, FileType: getFileType(path)}
 }
 
+var root *string
+
 func main() {
 	// コマンドライン引数
-	root := flag.String("root", "path/to/hoge", "Specify root directory path to open.")
+	root = flag.String("root", "path/to/hoge", "Specify root directory path to open.")
 	port := flag.Int("port", 8000, "Specify port to use.")
 	flag.Parse()
 	fmt.Printf("root: %s\n", *root)
