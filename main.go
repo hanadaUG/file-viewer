@@ -1,10 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -37,6 +37,10 @@ func newEntity(path string) *Entity {
 	return &Entity{Name: name, Path: path, FileType: getFileType(path)}
 }
 
+type Template struct {
+	templates *template.Template
+}
+
 var root *string
 
 func main() {
@@ -53,6 +57,25 @@ func main() {
 	// Middleware
 	// e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+
+	// Register a static file
+	e.Static("/assets", "assets")
+
+	// Template
+	funcMap := template.FuncMap{
+		//"add":  func(a, b int) int { return a + b },
+	}
+
+	tmpl, err := template.New("t").Funcs(funcMap).ParseGlob("templates/*.html")
+	if err != nil {
+		panic(err)
+	}
+
+	t := &Template{
+		templates: tmpl,
+	}
+
+	e.Renderer = t
 
 	// Routes
 	e.GET("/*", handler)
@@ -107,30 +130,17 @@ func (entity Entity) DirHandler(c echo.Context) error {
 		entities = append(entities, *newEntity(path))
 	}
 
-	html := `
-<html>
-	<body>
-		<h1>{{.entity.Path}}</h1>
-{{range .entities}}
-<li><a href="{{.Path}}">{{.Name}}</a></li>
-{{end}}
-	</body>
-</html>
-`
-	body := bytes.NewBuffer([]byte(""))
-	tmpl, err := template.New("index").Parse(html)
-	if err != nil {
-		panic(err)
-	}
-	err = tmpl.Execute(body, map[string]interface{}{
+	//埋め込み変数
+	data := map[string]interface{}{
 		"entity":   entity,
 		"entities": entities,
-	})
-	if err != nil {
-		panic(err)
 	}
 
-	return c.HTMLBlob(http.StatusOK, body.Bytes())
+	return c.Render(http.StatusOK, "index.html", data)
+}
+
+func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.templates.ExecuteTemplate(w, name, data)
 }
 
 func (entity Entity) FileHandler(c echo.Context) error {
@@ -186,4 +196,9 @@ func getFileType(path string) FileType {
 	default:
 		return UnKnown
 	}
+}
+
+// template から呼び出すため public なメソッドにする
+func (entity Entity) IsDir() bool {
+	return entity.FileType == Dir
 }

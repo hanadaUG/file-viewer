@@ -1,0 +1,32 @@
+<html>
+<body>
+<head>
+    <style type="text/css">
+        li {
+            list-style-type: none
+        }
+
+        div.entity {
+            /*  */
+        }
+    </style>
+</head>
+
+<h1>Index of {{.entity.Path}}</h1>
+<hr>
+
+{{range .entities}}
+<div class="entity">
+    <li>
+        <img src="/assets/icons/file-32.png" width="16" height="16">
+        <a href="{{.Path}}">
+            {{.Name}}
+            {{if .IsDir}}/{{end}}<!-- ディレクトリの場合はファイル名の末尾に/を追記する -->
+        </a>
+    </li>
+</div>
+{{end}}
+
+<hr>
+</body>
+</html>
