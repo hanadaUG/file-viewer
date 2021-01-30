@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -55,7 +56,7 @@ func main() {
 	e := echo.New()
 
 	// Middleware
-	// e.Use(middleware.Logger())
+	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
 	// Register a static file
@@ -201,4 +202,8 @@ func getFileType(path string) FileType {
 // template から呼び出すため public なメソッドにする
 func (entity Entity) IsDir() bool {
 	return entity.FileType == Dir
+}
+
+func (entity Entity) GetParentDir() string {
+	return path.Dir(entity.Path)
 }
