@@ -1,5 +1,8 @@
 # file-viewer
-golangで実装したシンプルなディレクトリリスティング（URLで指定するとディレクトリに含まれるファイル一覧を表示するサーバー）です。
+golangで実装したシンプルなディレクトリリスティング（URLで指定するとディレクトリに含まれるファイル一覧を表示する）サーバーです。  
+
+<img src="https://raw.githubusercontent.com/hanadaUG/file-viewer/main/assets/screenshot.png" width="360">
+
 ```
 # 実行方法
 # root オプション => 公開するフォルダを指定
