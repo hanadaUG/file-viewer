@@ -242,3 +242,24 @@ func (entity Entity) GetSize() string {
 	size := float64(entity.Size) / (1024 * 1024 * 1024)
 	return strconv.FormatFloat(size, 'f', 0, 64) + "GB"
 }
+
+func (entity Entity) GetIconPath() string {
+	var path string
+	switch entity.FileType {
+	case Dir:
+		path = "/assets/icons/folder-32.png"
+	case Jpeg:
+		path = "/assets/icons/jpeg-32.png"
+	case Png:
+		path = "/assets/icons/png-32.png"
+	case Txt:
+		path = "/assets/icons/document-32.png"
+	case Json:
+		fallthrough
+	case UnKnown:
+		fallthrough
+	default:
+		path = "/assets/icons/file-32.png"
+	}
+	return path
+}

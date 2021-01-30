@@ -51,7 +51,7 @@
     {{range .entities}}
     <tr>
         <td>
-            <img src="/assets/icons/file-32.png" width="16" height="16">
+            <img src="{{.GetIconPath}}" width="16" height="16">
             <a href="{{.Path}}">
                 {{.Name}}
                 {{if .IsDir}}/{{end}}<!-- ディレクトリの場合はファイル名の末尾に/を追記する -->
