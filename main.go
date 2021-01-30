@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -30,12 +33,14 @@ const (
 type Entity struct {
 	Name     string
 	Path     string
+	ModTime  time.Time
+	Size     int64
 	FileType FileType
 }
 
-func newEntity(path string) *Entity {
+func newEntity(path string, info fs.FileInfo) *Entity {
 	_, name := filepath.Split(path)
-	return &Entity{Name: name, Path: path, FileType: getFileType(path)}
+	return &Entity{Name: name, Path: path, ModTime: info.ModTime(), Size: info.Size(), FileType: getFileType(path)}
 }
 
 type Template struct {
@@ -94,11 +99,11 @@ func handler(c echo.Context) error {
 	// fmt.Printf("fullPath: %s\n", fullPath)
 
 	// ファイルの存在チェック
-	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+	if info, err := os.Stat(fullPath); os.IsNotExist(err) {
 		// fmt.Printf("NotFound\n")
 		return c.NoContent(http.StatusNotFound)
 	} else {
-		entity := newEntity(c.Request().URL.Path)
+		entity := newEntity(c.Request().URL.Path, info)
 		// fmt.Printf("entity: %v\n", entity)
 		return entity.Handler(c)
 	}
@@ -128,7 +133,9 @@ func (entity Entity) DirHandler(c echo.Context) error {
 	var entities []Entity
 	for _, file := range files {
 		path := filepath.Join(entity.Path, file.Name())
-		entities = append(entities, *newEntity(path))
+		fullPath = filepath.Join(*root, path)
+		info, _ := os.Stat(fullPath)
+		entities = append(entities, *newEntity(path, info))
 	}
 
 	//埋め込み変数
@@ -206,4 +213,32 @@ func (entity Entity) IsDir() bool {
 
 func (entity Entity) GetParentDir() string {
 	return path.Dir(entity.Path)
+}
+
+func (entity Entity) GetModTime() string {
+	return entity.ModTime.Format("2006/01/02 15:04:05")
+}
+
+func (entity Entity) GetSize() string {
+	if entity.FileType == Dir {
+		return "-"
+	}
+	if entity.Size < 1024 {
+		return strconv.Itoa(int(entity.Size)) + "B"
+	}
+	if entity.Size < 1024*1024 {
+		// KBのみ小数点第一まで表示
+		size := float64(entity.Size) / (1024)
+		s := strconv.FormatFloat(size, 'f', 1, 64)
+		if strings.Contains(s, ".0") {
+			return strconv.FormatFloat(size, 'f', 0, 64) + "KB"
+		}
+		return s + "KB"
+	}
+	if entity.Size < 1024*1024*1024 {
+		size := float64(entity.Size) / (1024 * 1024)
+		return strconv.FormatFloat(size, 'f', 0, 64) + "MB"
+	}
+	size := float64(entity.Size) / (1024 * 1024 * 1024)
+	return strconv.FormatFloat(size, 'f', 0, 64) + "GB"
 }

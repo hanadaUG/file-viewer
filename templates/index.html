@@ -2,46 +2,76 @@
 <body>
 <head>
     <style type="text/css">
-        li {
-            list-style-type: none
-        }
-
         /* 親ディレクトリへのbackリンク */
         div.back {
             font-size: large;
-            margin: 2px;
+            margin: 0px 2px 10px 2px;
         }
 
-        /* ファイルリンク */
-        div.entity {
-            margin: 2px;
+        /* 変更日 */
+        div.time {
+            text-align: center;
+        }
+
+        /* フィルサイズ */
+        div.size {
+            text-align: right;
+        }
+
+        table th, table td {
+            padding: 0px 4px 0px 4px;
         }
     </style>
 </head>
 
 <h1>Index of {{.entity.Path}}</h1>
-<hr>
 
-<!-- root以外では親ディレクトリへ戻るリンクを表示させる -->
-<div class="back">
-    {{if ne .entity.Path "/"}}
-    <img src="/assets/icons/back-32.png" width="16" height="16">
-    <a href="{{.entity.GetParentDir}}">Parent Directory</a>
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Last modified</th>
+        <th>Size</th>
+    </tr>
+    <tr>
+        <td colspan="3">
+            <hr>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="3">
+            <!-- root以外では親ディレクトリへ戻るリンクを表示させる -->
+            <div class="back">
+                {{if ne .entity.Path "/"}}
+                <img src="/assets/icons/back-32.png" width="16" height="16">
+                <a href="{{.entity.GetParentDir}}">Parent Directory</a>
+                {{end}}
+            </div>
+        </td>
+    </tr>
+    {{range .entities}}
+    <tr>
+        <td>
+            <img src="/assets/icons/file-32.png" width="16" height="16">
+            <a href="{{.Path}}">
+                {{.Name}}
+                {{if .IsDir}}/{{end}}<!-- ディレクトリの場合はファイル名の末尾に/を追記する -->
+            </a>
+        </td>
+        <td>
+            <div class="time">{{.GetModTime}}</div>
+        </td>
+        <td>
+            <div class="size">{{.GetSize}}</div>
+        </td>
+    </tr>
+
     {{end}}
-</div>
+    <tr>
+        <td colspan="3">
+            <hr>
+        </td>
+    </tr>
+</table>
 
-{{range .entities}}
-<div class="entity">
-    <li>
-        <img src="/assets/icons/file-32.png" width="16" height="16">
-        <a href="{{.Path}}">
-            {{.Name}}
-            {{if .IsDir}}/{{end}}<!-- ディレクトリの場合はファイル名の末尾に/を追記する -->
-        </a>
-    </li>
-</div>
-{{end}}
-
-<hr>
 </body>
 </html>
