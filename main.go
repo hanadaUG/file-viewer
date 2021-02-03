@@ -43,8 +43,31 @@ type Entity struct {
 }
 
 func newEntity(path string, info fs.FileInfo) *Entity {
-	_, name := filepath.Split(path)
-	return &Entity{Name: name, Path: path, ModTime: info.ModTime(), Size: info.Size(), FileType: getFileType(path)}
+	// ファイル種類を判別
+	var fileType FileType
+	if info.IsDir() {
+		fileType = Dir
+	} else {
+		ext := filepath.Ext(path) // "path/to/hoge.c" => ".c"
+		ext = strings.ToLower(ext)
+		// fmt.Printf("ext: %s\n", ext)
+
+		switch ext {
+		case ".jpeg":
+			fallthrough
+		case ".jpg":
+			fileType = Jpeg
+		case ".png":
+			fileType = Png
+		case ".txt":
+			fileType = Txt
+		case ".json":
+			fileType = Json
+		default:
+			fileType = UnKnown
+		}
+	}
+	return &Entity{Name: info.Name(), Path: path, ModTime: info.ModTime(), Size: info.Size(), FileType: fileType}
 }
 
 type Template struct {
@@ -182,30 +205,6 @@ func (entity Entity) FileHandler(c echo.Context) error {
 		contentType = "application/octet-stream"
 	}
 	return c.Blob(http.StatusOK, contentType, data)
-}
-
-// 拡張子からファイル種類を判別
-func getFileType(path string) FileType {
-	ext := filepath.Ext(path) // "path/to/hoge.c" => ".c"
-	ext = strings.ToLower(ext)
-	// fmt.Printf("ext: %s\n", ext)
-
-	switch ext {
-	case "":
-		return Dir
-	case ".jpeg":
-		fallthrough
-	case ".jpg":
-		return Jpeg
-	case ".png":
-		return Png
-	case ".txt":
-		return Txt
-	case ".json":
-		return Json
-	default:
-		return UnKnown
-	}
 }
 
 // template から呼び出すため public なメソッドにする
