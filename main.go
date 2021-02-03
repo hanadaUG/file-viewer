@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"flag"
 	"fmt"
 	"html/template"
@@ -18,6 +19,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
+
+//go:embed assets/*
+var assets embed.FS // assets配下の静的ファイルを実行ファイルに埋め込む
 
 type FileType string
 
@@ -64,15 +68,12 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	// Register a static file
-	e.Static("/assets", "assets")
-
 	// Template
 	funcMap := template.FuncMap{
 		//"add":  func(a, b int) int { return a + b },
 	}
 
-	tmpl, err := template.New("t").Funcs(funcMap).ParseGlob("assets/templates/*.html")
+	tmpl, err := template.New("t").Funcs(funcMap).ParseFS(assets, "assets/templates/*.html")
 	if err != nil {
 		panic(err)
 	}
@@ -85,6 +86,7 @@ func main() {
 
 	// Routes
 	e.GET("/*", handler)
+	e.GET("/assets/*", echo.WrapHandler(http.FileServer(http.FS(assets))))
 
 	// Start server
 	address := fmt.Sprintf(":%d", *port)
