@@ -72,7 +72,7 @@ func main() {
 		//"add":  func(a, b int) int { return a + b },
 	}
 
-	tmpl, err := template.New("t").Funcs(funcMap).ParseGlob("templates/*.html")
+	tmpl, err := template.New("t").Funcs(funcMap).ParseGlob("assets/templates/*.html")
 	if err != nil {
 		panic(err)
 	}
